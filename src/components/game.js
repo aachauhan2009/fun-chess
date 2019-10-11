@@ -1,33 +1,44 @@
 import React from "react";
-import { getValues } from "jest-validate/build/condition";
 
-const getTop = index => {
+const getTop = (boxes, index) => {
   switch(true) {
     case index < 4: return null;
-    default: return index - 4;
+    default: return boxes.find(({ position }) => position === (index - 4));
   }
 }
 
-const getBottom = index => {
+const getBottom = (boxes, index) => {
   switch(true) {
     case index > 12: return null;
-    default: return index + 4;
+    default: return boxes.find(({ position }) => position === (index + 4));
   }
 }
 
-const getRight = index => {
+const getRight = (boxes, index) => {
   switch(true) {
     case index % 4 === 0: return null;
-    default: return index + 1;
+    default: return boxes.find(({ position }) => position === (index + 1));
   }
 }
 
-const getLeft = index => {
+const getLeft = (boxes, index) => {
   switch(true) {
     case index % 4 === 1: return null;
-    default: return index - 1;
+    default: return boxes.find(({ position }) => position === (index - 1));
   }
 }
+
+const chain = [
+  "🐘",
+  "🦁",
+  "🐯",
+  "🐺",
+  "🦊",
+  "🐶",
+  "🐱",
+  "🐀",
+  "🐘"
+];
 
 const mapper = [
   "",
@@ -52,9 +63,20 @@ const mapper = [
 function Box({
   position,
   value,
+  top,
+  left,
+  bottom,
+  right,
   onClick
 }) {
-  return <div className={`box ${value ? (value > 8 ? "box--blue" : "box--red") : ""}`} onClick={onClick}>{mapper[value]}</div>
+  return (
+    <div
+      className={`box ${value ? (value > 8 ? "box--blue" : "box--red") : ""}`}
+      onClick={e => onClick(position)}
+    >
+      {mapper[value]}
+    </div>
+  );
 };
 
 function Game() {
@@ -101,12 +123,30 @@ function Game() {
     return value;
   }
 
-  const onBoxClick = position => () => {
+  const onBoxClick = position => {
     setBoxes(boxes.map(box => box.position === position && !box.value ? {...box, value: getValue()} : box));
   };
-  return <div className="game">
-    {boxes.map(box => <Box className="box" key={box.position} onClick={onBoxClick(box.position)} {...box} />)}
-  </div>
+  return <React.Fragment>
+    <div className="rules">
+      {chain.join("→")}
+    </div>
+    <div className="game">
+      {
+        boxes.map(box => (
+          <Box
+          key={box.position}
+          className="box"
+          onClick={onBoxClick}
+          top={getTop(boxes, box.position)}
+          left={getLeft(boxes, box.position)}
+          bottom={getBottom(boxes, box.position)}
+          right={getRight(boxes, box.position)}
+          {...box}
+          />
+          ))
+        }
+    </div>
+  </React.Fragment> 
 };
 
 export default Game;
